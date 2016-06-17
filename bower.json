@@ -13,12 +13,5 @@
     "bower_components",
     "test",
     "tests"
-  ],
-  "dependencies": {
-    "angular-medium-editor": "^1.1.1",
-    "bloodhound": "^1.0.4",
-    "not-angular-typeahead": "angular-typeahead#^0.3.1",
-    "angular-typeahead": "0.2.1",
-    "typeahead.js": "0.10.1"
-  }
+  ]
 }
