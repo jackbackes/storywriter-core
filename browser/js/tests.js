@@ -7,7 +7,7 @@ app.config(function($stateProvider){
 })
 app.config(function($stateProvider){
   $stateProvider.state('storyWriterTest', {
-    url: 'test/story-writer',
+    url: '/story-writer-test',
     template: '<br><br><br><br><story-writer></story-writer>'
   })
 })
