@@ -20,6 +20,8 @@ name in the environment files.
 var chalk = require('chalk');
 var db = require('./server/db');
 var User = db.model('user');
+const Word = db.model('word');
+var bluebird = require('bluebird');
 var Promise = require('sequelize').Promise;
 
 var seedUsers = function () {
@@ -43,7 +45,25 @@ var seedUsers = function () {
 
 };
 
+
+let wordSeeds = ["I", "am", "Sam", "Sam", "I", "am", "I", "do", "not", "like", "Green", "Eggs", "and", "Ham"]
+
+function seedPhrase (phrase) {
+  return bluebird.each(phrase, (word) => Word.incrementWord(word) )
+}
+
+// function seedPhrases (phraseList) {
+//   return phraseList.map( phrase => seedPhrase(phrase) );
+// }
+
+
+
+
+
 db.sync({ force: true })
+    .then(function() {
+      return seedPhrase(wordSeeds);
+    })
     .then(function () {
         return seedUsers();
     })

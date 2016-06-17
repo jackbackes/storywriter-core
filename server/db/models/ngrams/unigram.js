@@ -6,10 +6,19 @@ module.exports = function (db) {
   db.define('word', {
     word: {
       type: Sequelize.STRING,
+      unique: true
     },
     frequency: {
       type: Sequelize.INTEGER,
-      defaultValue: 1
+      defaultValue: 0
+    }
+  }, {
+    classMethods: {
+      incrementWord: function(word){
+        return this.findOrCreate({where: {word}}).then( word => {
+          return word[0].increment('frequency');
+        })
+      }
     }
   })
 }
