@@ -32,6 +32,13 @@ module.exports = function (db) {
   }, {
     /** @lends Bigram */
     classMethods: {
+      addAssociations(database = db){
+        const Bigram = db.model('bigram');
+        const Word = db.model('word');
+        Bigram.belongsTo(Word, {as: 'tokenOne', foreignKey: 'tokenOneId', targetKey: 'id'}),
+        Bigram.belongsTo(Word, {as: 'tokenTwo', foreignKey: 'tokenTwoId', targetKey: 'id'})
+        return Bigram;
+      },
       // /**
       //  * [incrementWord description]
       //  * @summary adds or increments a word
@@ -70,6 +77,36 @@ module.exports = function (db) {
           bigramMap.push( [word, text[i+1]] ) )
         /** @return {Array.<string>} [raw] */
         return Bluebird.resolve(bigramMap)
+      },
+      /**
+       * [train description]
+       * @param  {Array.<string>} bigramTuple [description]
+       * @return {Object}             [instance of the bigram]
+       */
+      train( bigramTuple, createFind=true ){
+        // console.log(db);
+        const Word = db.model('word');
+        const Bigram = db.model('bigram');
+        if( !bigramTuple ) throw 'Bigram.train must be called with a Bigram Tuple'
+        if(!Array.isArray(bigramTuple)) throw 'must pass bigram tuple into train. use trainText or trainCorpusText for parsing';
+        let [tokenOne, tokenTwo] = bigramTuple;
+        console.log(tokenOne, tokenTwo);
+        let fcfOpts = {
+          where: {tokenOne: tokenOne, tokenTwo: tokenTwo},
+          include: [
+            {model: Word, as: 'tokenOneId'},
+            {model: Word, as: 'tokenTwoId'}
+          ]
+        }
+        if(createFind){
+          return Bluebird.mapSeries(bigramTuple, word => Word.findCreateFind({where: {word}}) ).spread( (tokenOne, tokenTwo) => {
+            fcfOpts['where']['tokenOne'] = tokenOne;
+            fcfOpts.where.tokenTwo = tokenTwo;
+            return Bigram.create(fcfOpts);
+          } )
+        } else {
+          return Bigram.create(fcfOpts);
+        }
       }
     }
         // return Word.phraseParser(...arguments).then( wordArray =>
@@ -141,5 +178,5 @@ module.exports = function (db) {
 // example of how to construct the bigram model
 function BigramConstructor (db) {
   /** @constructs Bigram */
-  db.models('bigram')
+  db.model('bigram')
 }

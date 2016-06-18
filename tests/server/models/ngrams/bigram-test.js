@@ -13,6 +13,7 @@ var db = new Sequelize( dbURI, {
   logging: false
 } );
 
+require( '../../../../server/db/models/ngrams/unigram' )( db );
 require( '../../../../server/db/models/ngrams/bigram' )( db );
 
 let Bigram;
@@ -25,15 +26,18 @@ describe( 'Bigram model', function () {
   } );
   beforeEach( 'Define Bigram Model', function () {
     Bigram = db.model( 'bigram' );
+    Bigram.addAssociations(db);
     return Bigram;
   } );
 
+
   describe( 'class methods', function () {
+    let parsedText;
     let bigramSeed = `Sam I am I am Sam`;
     it( 'parseText parses text to a frequency:bigram map', function ( done ) {
       return Bigram.parseText( bigramSeed )
         .then( parsedText => {
-          console.log(parsedText);
+          // console.log(parsedText);
           return parsedText;
         })
         .then( parsedText => [
@@ -47,26 +51,41 @@ describe( 'Bigram model', function () {
     } );
     beforeEach(function ( done ) {
       return Bigram.parseText( bigramSeed )
+        .then( result => parsedText = result )
         .then( () => done() )
         .catch( done );
     } );
-    xit( 'takes an existing bigram and sets to frequency 1', function ( done ) {
-      return Bigram.incrementBigram( ["I", "am"] )
-        .then( bigramPrase => bigram.frequency.should.equal( 2 ) )
+    it( 'can add a single bigram', function ( done ) {
+      return Bigram.train( parsedText[0] )
+        .then(result => {
+          console.log(result);
+          return result.dataValues;
+        })
+        .then( bigramPhrase => bigramPhrase.should.have.property('tokenOne', '<s>').and.property('tokenTwo', 'same') )
         .then( () => done() )
         .catch( done )
     } );
-    xit( 'takes a new bigram and increments frequency', function ( done ) {
-      return Bigram.incrementWord( ["am", "sam"])
-        .then( () => Bigram.findOne( {
-          where: {
-            bigram: "I"
-          }
-        } ) )
-        .then( bigram => bigram.frequency.should.equal( 1 ) )
-        .then( () => done() )
-        .catch( done )
-    } );
+    xit( 'can train on an entire corpus', function( done) {
+      let bigramTrainPromise = Bigram.trainCorpus( bigramSeed );
+      let bigramLookup = Bigram.findAll()
+      return
+        bigramTrainPromise
+          .then( result => bigramLookup )
+          .get(0)
+          .then( bigram => bigram.should.eql( {bigram: ["i", "am"], frequency: 4 } ))
+
+    })
+    // xit( 'takes a new bigram and increments frequency', function ( done ) {
+    //   return Bigram.trainText( ["am", "sam"])
+    //     .then( () => Bigram.findOne( {
+    //       where: {
+    //         bigram: "I"
+    //       }
+    //     } ) )
+    //     .then( bigram => bigram.frequency.should.equal( 1 ) )
+    //     .then( () => done() )
+    //     .catch( done )
+    // } );
   } );
 
   xdescribe( 'Instance Methods', function () {} );
