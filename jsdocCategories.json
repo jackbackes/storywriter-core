@@ -1,0 +1,11 @@
+{
+    "model" : {
+        "displayName" : "Models"
+    },
+    "route" : {
+        "displayName" : "Routes"
+    },
+    "test" :{
+      "displayName" : "Tests"
+    }
+}

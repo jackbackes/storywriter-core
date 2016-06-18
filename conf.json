@@ -1,10 +1,12 @@
 {
-    "plugins": ["plugins/markdown", "plugins/summarize"],
+    "plugins": ["plugins/markdown", "plugins/summarize", "./resources/jsdoc-plugins/categories.js"],
     "opts": {
       "template": "./node_modules/ink-docstrap/template",
-      "destination": "./browser/js/docs/docs/",
-      "recurse": "true"
+      "destination": "./docs/",
+      "recurse": "true",
+      "outputsourcefiles": "true"
     },
+    "categoryfile": "./jsdocCategories.json",
     "title": "Checkpoint Documentation",
     "tags": {
         "allowUnknownTags": "true",

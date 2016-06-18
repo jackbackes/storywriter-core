@@ -1,3 +1,5 @@
+'use strict';
+
 var sinon = require( 'sinon' );
 var expect = require( 'chai' )
   .expect;
@@ -11,7 +13,7 @@ var db = new Sequelize( dbURI, {
   logging: false
 } );
 
-require( '../../../../server/db/models/ngrams/unigram' )( db );
+require( '../../../../server/db/models/ngrams/bigram' )( db );
 
 let Bigram;
 
@@ -26,22 +28,35 @@ describe( 'Bigram model', function () {
     return Bigram;
   } );
 
-  describe( 'definition', function () {
-    let bigramSeed = {
-      bigram: ["I", "am"]
-    };
-    beforeEach( function ( done ) {
-      return Bigram.create( bigramSeed )
+  describe( 'class methods', function () {
+    let bigramSeed = `Sam I am I am Sam`;
+    it( 'parseText parses text to a frequency:bigram map', function ( done ) {
+      return Bigram.parseText( bigramSeed )
+        .then( parsedText => {
+          console.log(parsedText);
+          return parsedText;
+        })
+        .then( parsedText => [
+          parsedText[0].should.eql( ['<s>', 'sam']),
+          parsedText[1].should.eql( ['sam', 'i'] ),
+          parsedText[2].should.eql( ['i', 'am']),
+          parsedText[3].should.eql( ['am', 'i'])
+        ] )
         .then( () => done() )
         .catch( done );
     } );
-    it( 'takes an existing bigram and sets to frequency 1', function ( done ) {
+    beforeEach(function ( done ) {
+      return Bigram.parseText( bigramSeed )
+        .then( () => done() )
+        .catch( done );
+    } );
+    xit( 'takes an existing bigram and sets to frequency 1', function ( done ) {
       return Bigram.incrementBigram( ["I", "am"] )
-        .then( bigram => bigram.frequency.should.equal( 2 ) )
+        .then( bigramPrase => bigram.frequency.should.equal( 2 ) )
         .then( () => done() )
         .catch( done )
     } );
-    it( 'takes a new bigram and increments frequency', function ( done ) {
+    xit( 'takes a new bigram and increments frequency', function ( done ) {
       return Bigram.incrementWord( ["am", "sam"])
         .then( () => Bigram.findOne( {
           where: {
@@ -54,9 +69,7 @@ describe( 'Bigram model', function () {
     } );
   } );
 
-  describe( 'class methods', function () {} );
-
-  describe( 'Instance Methods', function () {} );
+  xdescribe( 'Instance Methods', function () {} );
 } );
 
 let wordSeeds = [ "I", "am", "Sam", "Sam", "I", "am", "I", "do", "not", "like", "Green", "Eggs", "and", "Ham" ]
