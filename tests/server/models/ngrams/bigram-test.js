@@ -13,146 +13,50 @@ var db = new Sequelize( dbURI, {
 
 require( '../../../../server/db/models/ngrams/unigram' )( db );
 
-let Word;
+let Bigram;
 
-describe( 'Word model', function () {
+describe( 'Bigram model', function () {
   beforeEach( 'Sync DB', function () {
     return db.sync( {
       force: true
     } );
   } );
-  beforeEach( 'Define Word Model', function () {
-    Word = db.model( 'word' );
-    return Word;
+  beforeEach( 'Define Bigram Model', function () {
+    Bigram = db.model( 'bigram' );
+    return Bigram;
   } );
 
   describe( 'definition', function () {
-    let wordSeed = {
-      word: "I"
+    let bigramSeed = {
+      bigram: ["I", "am"]
     };
     beforeEach( function ( done ) {
-      return Word.create( wordSeed )
+      return Bigram.create( bigramSeed )
         .then( () => done() )
         .catch( done );
     } );
-    it( 'takes a new word and sets to frequency 1', function ( done ) {
-      return Word.incrementWord( "am" )
-        .then( word => word.frequency.should.equal( 1 ) )
+    it( 'takes an existing bigram and sets to frequency 1', function ( done ) {
+      return Bigram.incrementBigram( ["I", "am"] )
+        .then( bigram => bigram.frequency.should.equal( 2 ) )
         .then( () => done() )
         .catch( done )
     } );
-    it( 'takes an existing word and increments frequency', function ( done ) {
-      return Word.incrementWord( "I" )
-        .then( () => Word.findOne( {
+    it( 'takes a new bigram and increments frequency', function ( done ) {
+      return Bigram.incrementWord( ["am", "sam"])
+        .then( () => Bigram.findOne( {
           where: {
-            word: "I"
+            bigram: "I"
           }
         } ) )
-        .then( word => word.frequency.should.equal( 2 ) )
+        .then( bigram => bigram.frequency.should.equal( 1 ) )
         .then( () => done() )
         .catch( done )
     } );
   } );
 
-  describe( 'class methods', function () {
-    /**
-     * @see addPhrase
-     * @type test
-     */
-    describe( '.addPhrase', function () {
-      it( 'takes an entire template string and correctly interprets', function ( done ) {
-        return Word.addPhrase( greenEggsAndHam )
-          .then( result => Word.findOne( {
-            where: {
-              word: "i"
-            }
-          } ) )
-          .then( word => word.frequency.should.be.above( 10 ) )
-          .then( () => done() )
-          .catch( done );
-      } );
-    } );
-    describe( '.mostLikely', function(){
-      beforeEach('adding corpus', function(done){
-        return Word.addPhrase( greenEggsAndHam )
-                   .then( () => {
-                     return done()
-                   }).catch(done);
-      })
-      it( 'returns a default of the 20 most likely words', function(done){
-        return Word.mostLikely()
-                   .then( result => {return [
-                     result[0].word.should.equal('not'),
-                     result[1].word.should.equal('i'),
-                     result[2].word.should.equal('them'),
-                     result.should.have.lengthOf(20)
-                   ]} )
-                   .then( () => {
-                     return done()
-                   }).catch(done)
-      })
-    })
-  } );
+  describe( 'class methods', function () {} );
 
-  describe( 'Instance Methods', function () {
-    /**
-     * @see unigramProbability
-     * @type test
-     */
-    describe( '.unigramProbability', function () {
-
-      beforeEach( 'add some words', function ( done ) {
-        return Word.addPhrase( 'sam sam sam sam I am green sam' )
-          .then( () => done() )
-          .catch( done );
-      } );
-      it( 'look up the probability of a word', function ( done ) {
-        return Word.findOne( {
-            where: {
-              word: "i"
-            }
-          } )
-          .then( word => word.unigramProbability() )
-          .then( probability => probability.should.be.within( 1, 10000 ) )
-          .then( () => done() )
-          .catch( done )
-      } );
-      it( 'unigram probability should be an integer out of 10,000', function ( done ) {
-        let greenProbability =
-          Word.findOne( {
-            where: {
-              word: "green"
-            }
-          } )
-          .then( word => word.unigramProbability() )
-        let samProbability =
-          Word.findOne( {
-            where: {
-              word: "sam"
-            }
-          } )
-          .then( word => word.unigramProbability() )
-        return bluebird.all( [ greenProbability, samProbability ] )
-          .spread( ( greenP, samP ) => [
-              greenP.should.equal( 1250 ),
-              samP.should.equal( 6250 )
-            ] )
-          .then( () => done() )
-          .catch( done );
-      } );
-      it('unigram probability is a virtual property', function(done){
-        return Word.findOne( {
-          where: {
-            word: "am"
-          }
-        })
-        .then( am => am.unigramP)
-        .then( amProbability => amProbability.should.equal( 1250 ))
-        .then( ()=> done() )
-        .catch(done)
-      })
-    } );
-  } );
+  describe( 'Instance Methods', function () {} );
 } );
 
 let wordSeeds = [ "I", "am", "Sam", "Sam", "I", "am", "I", "do", "not", "like", "Green", "Eggs", "and", "Ham" ]

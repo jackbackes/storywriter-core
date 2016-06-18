@@ -19,19 +19,15 @@ function phraseParser(){
   return defaultPhraseParser;
 }
 
-/** @class Word */
+/** @class Bigram */
 module.exports = function (db) {
-  db.define('word', {
+  db.define('bigram', {
     /** @constructs Word */
-    word: {
-      type: Sequelize.STRING,
-      unique: true
-    },
     frequency: {
       type: Sequelize.INTEGER,
       defaultValue: 1
     },
-    unigramP: {
+    bigramP: {
       type: Sequelize.VIRTUAL,
       get: function() {
         return this.unigramProbability();
@@ -40,41 +36,39 @@ module.exports = function (db) {
   }, {
     /** @lends Word */
     classMethods: {
-      /**
-       * [incrementWord description]
-       * @summary adds or increments a word
-       * @param  {String} word [the word to add]
-       * @return {Object}      [instance of Word]
-       */
-      incrementWord(word){
-        const Word = db.models['word'];
-        return Word.findCreateFind({where: {word}})
-                   .spread( (word, created) => {
-                     if(!word) throw 'no word'
-                     return [word, created];
-                   })
-                   .spread( (word, created) => {
-                     if(created) return word;
-                     return word.increment('frequency')
-                   })
-                   .catch(err => err);
-      },
+      // /**
+      //  * [incrementWord description]
+      //  * @summary adds or increments a word
+      //  * @param  {String} word [the word to add]
+      //  * @return {Object}      [instance of Word]
+      //  */
+      // incrementWord(word){
+      //   const Word = db.models['word'];
+      //   return Word.findCreateFind({where: {word}})
+      //              .spread( (word, created) => {
+      //                if(!word) throw 'no word'
+      //                return [word, created];
+      //              })
+      //              .spread( (word, created) => {
+      //                if(created) return word;
+      //                return word.increment('frequency')
+      //              })
+      //              .catch(err => err);
+      // },
       /**
        * [parseText parses raw text into an array]
        * @param  {String} rawText [a string or String.raw template literal, possibly with multiple lines]
        * @param  {Array.<Array.<RegExp, String>>} [normalizationRules = defaultRules]
        * @return {Array.<String>}         [raw]
        */
-      parseText: function(rawText, normalizationRules = defaultRules, parseMatcher = phraseParser()){
-        let phraseToMatch = rawText.toLowerCase();
-        // let normalizedPhrase = normalizationRules.reduce( (phrase, rule) => phrase.replace(rule[0], rule[1]), phraseToMatch)
-        // let normalizedPhraseWithStartAndEnd = `<s>${normalizedPhrase}</s>`
-        let matchedPhraseArray = phraseToMatch.match(parseMatcher);
-        let countedMatches = _.countBy(matchedPhraseArray);
-        let matchCollection = _.map(countedMatches, (value, key, collection) => {
-          return {word: key, frequency: value}
-        })
-        return matchCollection;
+      parseText: function(){
+        const Word = db.models['word'];
+        let bigramArray = []
+        return Word.phraseParser(...arguments).then( wordArray =>
+          wordArray.map( function(value, index, array) {
+            if(!array[index+1]) bigramArray.push( [value, `</s>`])
+            else bigramArray.push( [value, array[index+1]] )
+          }));
       },
       /**
        * [addPhrase]
