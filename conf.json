@@ -1,12 +1,13 @@
 {
     "plugins": ["plugins/markdown", "plugins/summarize"],
     "opts": {
-      "recurse": true,
-      "destination": "./docs"
+      "template": "./node_modules/ink-docstrap/template",
+      "destination": "./browser/js/docs/docs/",
+      "recurse": "true"
     },
     "title": "Checkpoint Documentation",
     "tags": {
-        "allowUnknownTags": true,
+        "allowUnknownTags": "true",
         "dictionaries": ["jsdoc", "closure"]
     },
     "source": {
@@ -15,10 +16,10 @@
         "excludePattern": "(^|\\/|\\\\)_"
     },
     "templates": {
-        "cleverLinks": true,
-        "monospaceLinks": false,
+        "cleverLinks": "true",
+        "monospaceLinks": "false",
         "systemName": "Story Writer",
         "theme": "readable",
-        "lineNumbers": true
+        "lineNumbers": "true"
     }
 }
