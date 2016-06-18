@@ -7,6 +7,7 @@ var rootPath = path.join(__dirname, '../../../');
 var indexPath = path.join(rootPath, './server/app/views/index.html');
 var testPath = path.join(rootPath, './server/app/views/test.html')
 var faviconPath = path.join(rootPath, './server/app/views/favicon.ico');
+var docsPath = path.join(rootPath, './browser/js/docs/docs/index.html');
 
 var env = require(path.join(rootPath, './server/env'));
 
@@ -21,6 +22,7 @@ var logMiddleware = function (req, res, next) {
 module.exports = function (app) {
     app.setValue('env', env);
     app.setValue('projectRoot', rootPath);
+    app.setValue('docsHTMLPath', docsPath);
     app.setValue('indexHTMLPath', indexPath);
     app.setValue('testHTMLPath', testPath)
     app.setValue('faviconPath', faviconPath);

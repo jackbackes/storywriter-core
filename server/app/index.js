@@ -30,9 +30,13 @@ module.exports = function (db) {
 
     });
 
+    app.get('/docs/**', function(req, res) {
+      res.sendFile(app.get('docsHTMLPath'))
+    });
+
     app.get('/test/*', function(req, res) {
       res.sendFile(app.get('testHTMLPath'));
-    })
+    });
 
     app.get('/*', function (req, res) {
         res.sendFile(app.get('indexHTMLPath'));
