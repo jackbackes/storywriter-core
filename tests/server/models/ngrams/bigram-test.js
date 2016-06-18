@@ -56,12 +56,12 @@ describe( 'Bigram model', function () {
         .catch( done );
     } );
     it( 'can add a single bigram', function ( done ) {
-      return Bigram.train( parsedText[0] )
-        .then(result => {
-          console.log(result);
-          return result.dataValues;
-        })
-        .then( bigramPhrase => bigramPhrase.should.have.property('tokenOne', '<s>').and.property('tokenTwo', 'same') )
+      return Bigram.train( ['<s>', 'sam'] )
+        .then( bigramPhrase =>{
+          console.log(bigramPhrase);
+          bigramPhrase.should.have.property('tokenOneId', 1)
+          bigramPhrase.should.have.property('tokenTwoId', 2)
+        } )
         .then( () => done() )
         .catch( done )
     } );

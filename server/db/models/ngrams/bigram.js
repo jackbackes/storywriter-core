@@ -22,12 +22,6 @@ module.exports = function (db) {
     frequency: {
       type: Sequelize.INTEGER,
       defaultValue: 1
-    },
-    bigramP: {
-      type: Sequelize.VIRTUAL,
-      get: function() {
-        return this.unigramProbability();
-      }
     }
   }, {
     /** @lends Bigram */
@@ -35,8 +29,8 @@ module.exports = function (db) {
       addAssociations(database = db){
         const Bigram = db.model('bigram');
         const Word = db.model('word');
-        Bigram.belongsTo(Word, {as: 'tokenOne', foreignKey: 'tokenOneId', targetKey: 'id'}),
-        Bigram.belongsTo(Word, {as: 'tokenTwo', foreignKey: 'tokenTwoId', targetKey: 'id'})
+        Bigram.belongsTo(Word, {as: 'tokenOne'}),
+        Bigram.belongsTo(Word, {as: 'tokenTwo'})
         return Bigram;
       },
       // /**
@@ -90,23 +84,21 @@ module.exports = function (db) {
         if( !bigramTuple ) throw 'Bigram.train must be called with a Bigram Tuple'
         if(!Array.isArray(bigramTuple)) throw 'must pass bigram tuple into train. use trainText or trainCorpusText for parsing';
         let [tokenOne, tokenTwo] = bigramTuple;
-        console.log(tokenOne, tokenTwo);
-        let fcfOpts = {
-          where: {tokenOne: tokenOne, tokenTwo: tokenTwo},
-          include: [
-            {model: Word, as: 'tokenOneId'},
-            {model: Word, as: 'tokenTwoId'}
-          ]
-        }
-        if(createFind){
-          return Bluebird.mapSeries(bigramTuple, word => Word.findCreateFind({where: {word}}) ).spread( (tokenOne, tokenTwo) => {
-            fcfOpts['where']['tokenOne'] = tokenOne;
-            fcfOpts.where.tokenTwo = tokenTwo;
-            return Bigram.create(fcfOpts);
-          } )
-        } else {
-          return Bigram.create(fcfOpts);
-        }
+        let tokenOneObj = {word: tokenOne};
+        let tokenTwoObj = {word: tokenTwo};
+        let createTokens = Word.bulkCreate([tokenOneObj, tokenTwoObj],
+          {
+            logging: true,
+            returning: true
+          }
+        )
+        return createTokens
+                       .spread( (tokenOneResult, tokenTwoResult) => {
+                       let newBigram = Bigram.build();
+                       newBigram.set('tokenOneId', tokenOneResult.id);
+                       newBigram.set('tokenTwoId', tokenTwoResult.id);
+                       return newBigram.save();}
+                     )
       }
     }
         // return Word.phraseParser(...arguments).then( wordArray =>
