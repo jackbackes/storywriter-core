@@ -70,10 +70,36 @@ module.exports = function (db) {
         // let normalizedPhrase = normalizationRules.reduce( (phrase, rule) => phrase.replace(rule[0], rule[1]), phraseToMatch)
         // let normalizedPhraseWithStartAndEnd = `<s>${normalizedPhrase}</s>`
         let matchedPhraseArray = phraseToMatch.match(parseMatcher);
-        let countedMatches = _.countBy(matchedPhraseArray);
-        let matchCollection = _.map(countedMatches, (value, key, collection) => {
-          return {word: key, frequency: value}
+        let sorted = new Map();
+        matchedPhraseArray.forEach( (word, index) => {
+          if( typeof word !== 'string' ) {return;}
+          else {
+              let frequency = sorted.get(word) || 1;
+              let newFrequency = frequency + 1;
+              sorted.set(word, newFrequency);
+          };
         })
+        // console.log(sorted);
+        // let countedMatches = _.countBy( sorted );
+        // let filteredMatches = _.filter( countedMatches,
+        //   function(value, key) {
+        //     console.log('the values:',value, key, typeof key, typeof +key );
+        //     return (typeof +key === 'string')
+        //   } )
+        // console.log('the keys:',Object.keys( filteredMatches ))
+        let matchCollection = [];
+        for(var entry of sorted) {
+          matchCollection.push( {word: entry[0], frequency: entry[1]} );
+        }
+
+        // let matchCollection = sorted.map( entry => {
+        //   return {word: entry[0], frequency: entry[1]}
+        // })
+        // let matchCollection = _.map(sorted, (value, key, collection) => {
+        //
+        //     return {word: key, frequency: value}
+        //
+        // })
         return matchCollection;
       },
       /**
@@ -86,6 +112,7 @@ module.exports = function (db) {
       addPhrase: function(rawText, normalizationRules = defaultRules){
         const Word = db.models['word'];
         let phraseArray = Word.parseText(rawText, normalizationRules);
+        console.log(phraseArray);
         return bluebird.mapSeries(phraseArray, (value, index, array) =>{
           return Word.addWordWithFrequency(value)
         } );

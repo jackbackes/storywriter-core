@@ -23,6 +23,22 @@ var User = db.model('user');
 const Word = db.model('word');
 var bluebird = require('bluebird');
 var Promise = require('sequelize').Promise;
+var Bluebird = require('bluebird');
+const fs = require('fs');
+var Promise = require('sequelize').Promise;
+const path = require('path');
+const StringDecoder = require('string_decoder').StringDecoder;
+const decoder = new StringDecoder('utf8');
+
+//path definitions
+const serverPath = path.join(__dirname, 'server')
+const dbPath = path.join(serverPath, 'db')
+const modelPath = path.join(dbPath, 'models')
+const nGramPath = path.join(modelPath, 'ngrams')
+const bigramPath = path.join(nGramPath, 'bigram.js')
+
+//model definitions
+const Bigram = db.model('bigram');
 
 var seedUsers = function () {
 
@@ -46,169 +62,67 @@ var seedUsers = function () {
 };
 
 
-// let wordSeeds = ["I", "am", "Sam", "Sam", "I", "am", "I", "do", "not", "like", "Green", "Eggs", "and", "Ham"]
 
-let greenEggsAndHam = String.raw`I AM SAM. I AM SAM. SAM I AM.
-
-THAT SAM-I-AM! THAT SAM-I-AM! I DO NOT LIKE THAT SAM-I-AM!
-
-DO WOULD YOU LIKE GREEN EGGS AND HAM?
-
-I DO NOT LIKE THEM,SAM-I-AM.
-I DO NOT LIKE GREEN EGGS AND HAM.
-
-WOULD YOU LIKE THEM HERE OR THERE?
-
-I WOULD NOT LIKE THEM HERE OR THERE.
-I WOULD NOT LIKE THEM ANYWHERE.
-I DO NOT LIKE GREEN EGGS AND HAM.
-I DO NOT LIKE THEM, SAM-I-AM.
-
-WOULD YOU LIKE THEM IN A HOUSE?
-WOULD YOU LIKE THEN WITH A MOUSE?
-
-I DO NOT LIKE THEM IN A HOUSE.
-I DO NOT LIKE THEM WITH A MOUSE.
-I DO NOT LIKE THEM HERE OR THERE.
-I DO NOT LIKE THEM ANYWHERE.
-I DO NOT LIKE GREEN EGGS AND HAM.
-I DO NOT LIKE THEM, SAM-I-AM.
-
-WOULD YOU EAT THEM IN A BOX?
-WOULD YOU EAT THEM WITH A FOX?
-
-NOT IN A BOX. NOT WITH A FOX.
-NOT IN A HOUSE. NOT WITH A MOUSE.
-I WOULD NOT EAT THEM HERE OR THERE.
-I WOULD NOT EAT THEM ANYWHERE.
-I WOULD NOT EAT GREEN EGGS AND HAM.
-I DO NOT LIKE THEM, SAM-I-AM.
-
-WOULD YOU? COULD YOU? IN A CAR?
-EAT THEM! EAT THEM! HERE THEY ARE.
-
-I WOULD NOT, COULD NOT, IN A CAR.
-
-YOU MAY LIKE THEM. YOU WILL SEE.
-YOU MAY LIKE THEM IN A TREE!
-
-I WOULD NOT, COULD NOT IN A TREE.
-NOT IN A CAR! YOU LET ME BE.
-I DO NOT LIKE THEM IN A BOX.
-I DO NOT LIKE THEM WITH A FOX.
-I DO NOT LIKE THEM IN A HOUSE.
-I DO NOT LIKE THEM WITH A MOUSE.
-I DO NOT LIKE THEM HERE OR THERE.
-I DO NOT LIKE THEM ANYWHERE.
-I DO NOT LIKE GREEN EGGS AND HAM.
-I DO NOT LIKE THEM, SAM-I-AM.
-
-A TRAIN! A TRAIN! A TRAIN! A TRAIN!
-COULD YOU, WOULD YOU ON A TRAIN?
-
-NOT ON TRAIN! NOT IN A TREE!
-NOT IN A CAR! SAM! LET ME BE!
-I WOULD NOT, COULD NOT, IN A BOX.
-I WOULD NOT, COULD NOT, WITH A FOX.
-I WILL NOT EAT THEM IN A HOUSE.
-I WILL NOT EAT THEM HERE OR THERE.
-I WILL NOT EAT THEM ANYWHERE.
-I DO NOT EAT GREEM EGGS AND HAM.
-I DO NOT LIKE THEM, SAM-I-AM.
-
-SAY! IN THE DARK? HERE IN THE DARK!
-WOULD YOU, COULD YOU, IN THE DARK?
-
-I WOULD NOT, COULD NOT, IN THE DARK.
-
-WOULD YOU COULD YOU IN THE RAIN?
-
-I WOULD NOT, COULD NOT IN THE RAIN.
-NOT IN THE DARK. NOT ON A TRAIN.
-NOT IN A CAR. NOT IN A TREE.
-I DO NOT LIKE THEM, SAM, YOU SEE.
-NOT IN A HOUSE. NOT IN A BOX.
-NOT WITH A MOUSE. NOT WITH A FOX.
-I WILL NOT EAT THEM HERE OR THERE.
-I DO NOT LIKE THEM ANYWHERE!
-
-YOU DO NOT LIKE GREEN EGGS AND HAM?
-
-I DO NOT LIKE THEM, SAM-I-AM.
-
-COULD YOU, WOULD YOU, WITH A GOAT?
-
-I WOULD NOT, COULD NOT WITH A GOAT!
-
-WOULD YOU, COULD YOU, ON A BOAT?
-
-I COULD NOT, WOULD NOT, ON A BOAT.
-I WILL NOT, WILL NOT, WITH A GOAT.
-I WILL NOT EAT THEM IN THE RAIN.
-NOT IN THE DARK! NOT IN A TREE!
-NOT IN A CAR! YOU LET ME BE!
-I DO NOT LIKE THEM IN A BOX.
-I DO NOT LIKE THEM WITH A FOX.
-I WILL NOT EAT THEM IN A HOUSE.
-I DO NOT LIKE THEM WITH A MOUSE.
-I DO NOT LIKE THEM HERE OR THERE.
-I DO NOT LIKE THEM ANYWHERE!
-I DO NOT LIKE GREEN EGGS AND HAM!
-I DO NOT LIKE THEM, SAM-I-AM.
-
-YOU DO NOT LIKE THEM. SO YOU SAY.
-TRY THEM! TRY THEM! AND YOU MAY.
-TRY THEM AND YOU MAY, I SAY.
-
-sAM! IF YOU LET ME BE,
-I WILL TRY THEM. YOU WILL SEE.
-
-(... and he tries them ...)
-
-SAY! I LIKE GREEN EGGS AND HAM!
-I DO! I LIKE THEM, SAM-I-AM!
-AND I WOULD EAT THEM IN A BOAT.
-AND I WOULD EAT THEM WITH A GOAT...
-AND I WILL EAT THEM, IN THE RAIN.
-AND IN THE DARK. AND ON A TRAIN.
-AND IN A CAR. AND IN A TREE.
-THEY ARE SO GOOD, SO GOOD, YOU SEE!
-SO I WILL EAT THEM IN A BOX.
-AND I WILL EAT THEM WITH A FOX.
-AND I WILL EAT THEM IN A HOUSE.
-AND I WILL EAT THEM WITH A MOUSE.
-AND I WILL EAT THEM HERE AND THERE.
-SAY! I WILL EAT THEM ANYWHERE!
-I DO SO LIKE GREEN EGGS AND HAM!
-THANK YOU! THANK YOU, SAM I AM.
-`
-
-function parsePhrase (phraseTemplate) {
-  let phraseParser = /[\w\-]+|[\.\!\,\?]|<n>|<s>|<\/s>/g
-  let phraseToMatch = phraseTemplate.toLowerCase();
-  let normalizedPhrase = '<s>' + phraseToMatch.replace(/\n/g, '<n>').replace(/[\.\!\,\?]/g, '$&</s><s>') + '</s>'
-  return normalizedPhrase.match(phraseParser);
-}
 
 
 
 function seedPhrase (phrase) {
-  // let parsedPhrase = parsePhrase(phrase)
   return Word.addPhrase(phrase)
 }
 
-// function seedPhrases (phraseList) {
-//   return phraseList.map( phrase => seedPhrase(phrase) );
+
+function story(title, storyPath, categories){
+  return {title, path: path.join(__dirname, 'resources/corpus', storyPath), categories}
+}
+
+let storySeeds = new Map()
+  .set('Green_Eggs_And_Ham', story('Green Eggs And Ham', 'greeneggsandham.txt', ['Dr. Seuss', 'poem'] ))
+  .set('Fairy_Tales_Every_Child_Should_Know', story('Fairy Tales Every Child Should Know', 'fairyTales/__pg14916.txt', ['Fairy Tale', 'Anthology']))
+  .set('Folk_Tales_Every_Child_Should_Know', story('Folk Tales Every Child Should Know', 'folkTales/pg15164.txt', ['Folk Tale', 'Anthology']))
+  .set('Good_Cheer_Stories_Every_Child_Should_Know', story('Good Cheer Stories Every Child Should Know', 'goodCheer/pg19909.txt', ['Good Cheer', 'Anthology']))
+  .set('Hero_Stories_Every_Child_Should_Know', story('Hero Stories Every Child Should Know', 'hero/pg4265.txt', ['Hero Story', 'Anthology']))
+  .set('Legends_Every_Child_Should_Know', story('Legends Every Child Should Know', 'legend/pg6622.txt', ['Legend', 'Anthology']))
+  .set('Myths_Every_Child_Should_Know', story('Myths Every Child Should Know', 'myth/pg16537.txt', ['Myth', 'Anthology']))
+  .set('Poems_Every_Child_Should_Know', story('Poems Every Child Should Know', 'poem/pg16436.txt', ['Poem', 'Anthology']))
+  .set('Wonder_Stories_Every_Child_Should_Know', story('Wonder Stories Every Child Should Know', 'wonder/pg19461.txt', ['Wonder Story', 'Anthology']))
+  .set('Famous_Stories_Every_Child_Should_Know', story('Famous Stories Every Child Should Know', 'famousStories/pg16247.txt', ['Famous Story', 'Anthology']))
+
+
+
+// for( [id, storyObject] of storySeeds ){
+//   Bluebird.resolve(
+//     console.log(storyObject.path)
+//   )
 // }
+//
+// console.log(storySeeds.keys())
 
-
-
-
+  function getTextSync(story) {
+    return fs.readFileSync(story.path, 'utf8')
+  }
 
 db.sync({ force: true })
-    .then(function() {
-      return seedPhrase(greenEggsAndHam);
+    // .then(function() {
+    //   return seedPhrase(getTextSync(storySeeds.get( 'Green_Eggs_And_Ham' )));
+    // })
+    .then( function() {
+      return Promise.each(storySeeds, story => {
+            let [id, storyObject] = story;
+            console.log(storyObject.path)
+            return seedPhrase(getTextSync(storyObject));
+      })
     })
+    // .then(function() {
+    //   return seedPhrase(getTextSync(storySeeds.get( 'Fairy_Tales_Every_Child_Should_Know' )));
+    // })
+    // .then(function() {
+    //   for( [id, storyObject] of storySeeds ){
+    //     Bluebird.resolve(
+    //       console.log(storyObject.path)
+    //     )
+    //   }
+    //   return seedPhrase(getTextSync(storySeeds.get( 'Fairy_Tales_Every_Child_Should_Know' )));
+    // })
     .then(function () {
         return seedUsers();
     })
