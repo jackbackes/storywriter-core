@@ -99,6 +99,15 @@ module.exports = function (db) {
                        newBigram.set('tokenTwoId', tokenTwoResult.id);
                        return newBigram.save();}
                      )
+      },
+      trainText( rawString ) {
+        const Word = db.models.word;
+        const Bigram = db.models.bigram;
+        return Bigram.parseText( rawString )
+          .mapSeries( bigramTuple => {
+            console.log( 'training', bigramTuple );
+            return Bigram.train( bigramTuple, false )
+          } )
       }
     }
         // return Word.phraseParser(...arguments).then( wordArray =>

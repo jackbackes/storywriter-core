@@ -110,32 +110,32 @@ module.exports = function ( db ) {
           let tokenTwoObj = {
             word: tokenTwo
           };
-          let createTokens = Word.bulkCreate( [ tokenOneObj, tokenTwoObj ], {
-            returning: true
-          } )
-          console.log(Bigram.schema());
-          // return createTokens
-          //   .spread( ( tokenOneResult, tokenTwoResult ) => {
-          //     let newBigram = Bigram.build(
-          //         {},
-          //         {include:
-          //           [
-          //             {model: Word, as: 'tokenOne'},
-          //             {model: Word, as: 'tokenTwo'}
-          //           ]
-          //         });
-          //     newBigram.tokenOneId = tokenOneResult.id;
-          //     newBigram.tokenTwoId = tokenTwoResult.id;
-          //     return newBigram.save();
-          //   } )
-          //   .then( result => {
-          //     console.log(result);
-          //     return result;
-          //   })
-          //   .catch( error => {
-          //     console.error(error)
-          //     return error
-          //   })
+          let createTokens =
+            Word.bulkCreate(
+              [ tokenOneObj, tokenTwoObj ],
+              { returning: true } );
+          return createTokens
+            .spread( ( tokenOneResult, tokenTwoResult ) => {
+              let newBigram = Bigram.build(
+                  {},
+                  {include:
+                    [
+                      {model: Word, as: 'tokenOne'},
+                      {model: Word, as: 'tokenTwo'}
+                    ]
+                  });
+              newBigram.tokenOneId = tokenOneResult.id;
+              newBigram.tokenTwoId = tokenTwoResult.id;
+              return newBigram.save();
+            } )
+            .then( result => {
+              console.log(result);
+              return result;
+            })
+            .catch( error => {
+              console.error(error)
+              return error
+            })
         },
         trainText( rawString ) {
           const Word = db.models.word;

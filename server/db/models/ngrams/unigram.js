@@ -1,7 +1,7 @@
 'use strict';
 var _ = require('lodash');
 var Sequelize = require('sequelize');
-const bluebird = require('bluebird');
+const Bluebird = require('bluebird');
 
 /**
  * [defaultRules are the default Normalization Rules used by Word.parseText()]
@@ -23,9 +23,13 @@ function phraseParser(){
 module.exports = function (db) {
   db.define('word', {
     /** @constructs Word */
+    id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true // Automatically gets converted to SERIAL for postgres
+    },
     word: {
-      type: Sequelize.STRING,
-      unique: true
+      type: Sequelize.STRING
     },
     frequency: {
       type: Sequelize.INTEGER,
@@ -38,6 +42,7 @@ module.exports = function (db) {
       }
     }
   }, {
+    initialAutoIncrement: 1,
     /** @lends Word */
     classMethods: {
       /**
@@ -86,7 +91,7 @@ module.exports = function (db) {
       addPhrase: function(rawText, normalizationRules = defaultRules){
         const Word = db.models['word'];
         let phraseArray = Word.parseText(rawText, normalizationRules);
-        return bluebird.mapSeries(phraseArray, (value, index, array) =>{
+        return Bluebird.mapSeries(phraseArray, (value, index, array) =>{
           return Word.addWordWithFrequency(value)
         } );
       },
@@ -109,6 +114,12 @@ module.exports = function (db) {
                   initialized ? frequency : word.frequency + frequency)
                 )
             .then (word => word.save())
+      },
+      incrementTuple(bigramTuple){
+        const Word = db.models['word'];
+        if(bigramTuple.length !== 2) throw 'add tuple with frequency only takes tuples. parameter is not a tuple.'
+        return Bluebird
+            .map(bigramTuple, word => Word.incrementWord(word) )
       },
       mostLikely(limit = 20) {
         const Word = db.models['word'];
