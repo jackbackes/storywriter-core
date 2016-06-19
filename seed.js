@@ -61,11 +61,6 @@ var seedUsers = function () {
 
 };
 
-
-
-
-
-
 function seedPhrase (phrase) {
   return Word.addPhrase(phrase)
 }
@@ -87,42 +82,17 @@ let storySeeds = new Map()
   .set('Wonder_Stories_Every_Child_Should_Know', story('Wonder Stories Every Child Should Know', 'wonder/pg19461.txt', ['Wonder Story', 'Anthology']))
   .set('Famous_Stories_Every_Child_Should_Know', story('Famous Stories Every Child Should Know', 'famousStories/pg16247.txt', ['Famous Story', 'Anthology']))
 
-
-
-// for( [id, storyObject] of storySeeds ){
-//   Bluebird.resolve(
-//     console.log(storyObject.path)
-//   )
-// }
-//
-// console.log(storySeeds.keys())
-
   function getTextSync(story) {
     return fs.readFileSync(story.path, 'utf8')
   }
 
+
+
 db.sync({ force: true })
-    // .then(function() {
-    //   return seedPhrase(getTextSync(storySeeds.get( 'Green_Eggs_And_Ham' )));
-    // })
-    .then( function() {
-      return Promise.each(storySeeds, story => {
+    .then( () => Promise.each(storySeeds, story => {
             let [id, storyObject] = story;
-            console.log(storyObject.path)
             return seedPhrase(getTextSync(storyObject));
-      })
-    })
-    // .then(function() {
-    //   return seedPhrase(getTextSync(storySeeds.get( 'Fairy_Tales_Every_Child_Should_Know' )));
-    // })
-    // .then(function() {
-    //   for( [id, storyObject] of storySeeds ){
-    //     Bluebird.resolve(
-    //       console.log(storyObject.path)
-    //     )
-    //   }
-    //   return seedPhrase(getTextSync(storySeeds.get( 'Fairy_Tales_Every_Child_Should_Know' )));
-    // })
+      }))
     .then(function () {
         return seedUsers();
     })
