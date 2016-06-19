@@ -6,7 +6,7 @@ var should = require( 'chai' )
 
 var Sequelize = require( 'sequelize' );
 var dbURI = 'postgres://localhost:5432/testing-fsg';
-const bluebird = require( 'bluebird' );
+const Bluebird = require( 'bluebird' );
 var db = new Sequelize( dbURI, {
   logging: false
 } );
@@ -52,6 +52,25 @@ describe( 'Word model', function () {
         .then( () => done() )
         .catch( done )
     } );
+    it( 'takes a tuple of words and increments', function ( done ) {
+      return Word.incrementTuple( [ "i", "sam" ] )
+        .spread( ( iInstance, samInstance ) => [
+          iInstance.frequency.should.equal( 1 ),
+          samInstance.frequency.should.equal( 1 )
+        ] )
+        .then( () => done() )
+        .catch( done );
+    } )
+    it( 'correctly increments a tuple when one already exists', function ( done ) {
+      return Word.incrementWord( "i" )
+        .then( () => Word.incrementTuple( [ "i", "sam" ] )
+          .spread( ( iInstance, samInstance ) => [
+            iInstance.frequency.should.equal( 2 ),
+            samInstance.frequency.should.equal( 1 )
+          ] ) )
+        .then( () => done() )
+        .catch( done )
+    } )
   } );
 
   describe( 'class methods', function () {
@@ -72,26 +91,30 @@ describe( 'Word model', function () {
           .catch( done );
       } );
     } );
-    describe( '.mostLikely', function(){
-      beforeEach('adding corpus', function(done){
+    describe( '.mostLikely', function () {
+      beforeEach( 'adding corpus', function ( done ) {
         return Word.addPhrase( greenEggsAndHam )
-                   .then( () => {
-                     return done()
-                   }).catch(done);
-      })
-      it( 'returns a default of the 20 most likely words', function(done){
+          .then( () => {
+            return done()
+          } )
+          .catch( done );
+      } )
+      it( 'returns a default of the 20 most likely words', function ( done ) {
         return Word.mostLikely()
-                   .then( result => {return [
-                     result[0].word.should.equal('not'),
-                     result[1].word.should.equal('i'),
-                     result[2].word.should.equal('them'),
-                     result.should.have.lengthOf(20)
-                   ]} )
-                   .then( () => {
-                     return done()
-                   }).catch(done)
-      })
-    })
+          .then( result => {
+            return [
+              result[ 0 ].word.should.equal( 'not' ),
+              result[ 1 ].word.should.equal( 'i' ),
+              result[ 2 ].word.should.equal( 'them' ),
+              result.should.have.lengthOf( 20 )
+            ]
+          } )
+          .then( () => {
+            return done()
+          } )
+          .catch( done )
+      } )
+    } )
   } );
 
   describe( 'Instance Methods', function () {
@@ -132,25 +155,25 @@ describe( 'Word model', function () {
             }
           } )
           .then( word => word.unigramProbability() )
-        return bluebird.all( [ greenProbability, samProbability ] )
+        return Bluebird.all( [ greenProbability, samProbability ] )
           .spread( ( greenP, samP ) => [
-              greenP.should.equal( 1250 ),
-              samP.should.equal( 6250 )
-            ] )
+            greenP.should.equal( 1250 ),
+            samP.should.equal( 6250 )
+          ] )
           .then( () => done() )
           .catch( done );
       } );
-      it('unigram probability is a virtual property', function(done){
+      it( 'unigram probability is a virtual property', function ( done ) {
         return Word.findOne( {
-          where: {
-            word: "am"
-          }
-        })
-        .then( am => am.unigramP)
-        .then( amProbability => amProbability.should.equal( 1250 ))
-        .then( ()=> done() )
-        .catch(done)
-      })
+            where: {
+              word: "am"
+            }
+          } )
+          .then( am => am.unigramP )
+          .then( amProbability => amProbability.should.equal( 1250 ) )
+          .then( () => done() )
+          .catch( done )
+      } )
     } );
   } );
 } );
@@ -307,5 +330,5 @@ const normalization = [
 
 function seedPhrase( phrase ) {
   let parsedPhrase = parsePhrase( phrase )
-  return bluebird.each( parsedPhrase, ( word ) => Word.incrementWord( word ) )
+  return Bluebird.each( parsedPhrase, ( word ) => Word.incrementWord( word ) )
 }

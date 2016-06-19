@@ -8,9 +8,10 @@ var should = require( 'chai' )
 
 var Sequelize = require( 'sequelize' );
 var dbURI = 'postgres://localhost:5432/testing-fsg';
-const bluebird = require( 'bluebird' );
+const Bluebird = require( 'bluebird' );
 var db = new Sequelize( dbURI, {
-  logging: false
+  logging: false,
+  omitNull: true
 } );
 
 require( '../../../../server/db/models/ngrams/unigram' )( db );
@@ -26,7 +27,7 @@ describe( 'Bigram model', function () {
   } );
   beforeEach( 'Define Bigram Model', function () {
     Bigram = db.model( 'bigram' );
-    Bigram.addAssociations(db);
+    Bigram.addAssociations( db );
     return Bigram;
   } );
 
@@ -34,58 +35,66 @@ describe( 'Bigram model', function () {
   describe( 'class methods', function () {
     let parsedText;
     let bigramSeed = `Sam I am I am Sam`;
-    it( 'parseText parses text to a frequency:bigram map', function ( done ) {
-      return Bigram.parseText( bigramSeed )
-        .then( parsedText => {
-          // console.log(parsedText);
-          return parsedText;
-        })
-        .then( parsedText => [
-          parsedText[0].should.eql( ['<s>', 'sam']),
-          parsedText[1].should.eql( ['sam', 'i'] ),
-          parsedText[2].should.eql( ['i', 'am']),
-          parsedText[3].should.eql( ['am', 'i'])
-        ] )
-        .then( () => done() )
-        .catch( done );
-    } );
-    beforeEach(function ( done ) {
-      return Bigram.parseText( bigramSeed )
-        .then( result => parsedText = result )
-        .then( () => done() )
-        .catch( done );
-    } );
-    it( 'can add a single bigram', function ( done ) {
-      return Bigram.train( ['<s>', 'sam'] )
-        .then( bigramPhrase =>{
-          console.log(bigramPhrase);
-          bigramPhrase.should.have.property('tokenOneId', 1)
-          bigramPhrase.should.have.property('tokenTwoId', 2)
+    xdescribe( 'text parsing', function () {
+      it( 'parseText parses text to a frequency:bigram map', function ( done ) {
+        return Bigram.parseText( bigramSeed )
+          .then( parsedText => {
+            // console.log(parsedText);
+            return parsedText;
+          } )
+          .then( parsedText => [
+            parsedText[ 0 ].should.eql( [ '<s>', 'sam' ] ),
+            parsedText[ 1 ].should.eql( [ 'sam', 'i' ] ),
+            parsedText[ 2 ].should.eql( [ 'i', 'am' ] ),
+            parsedText[ 3 ].should.eql( [ 'am', 'i' ] )
+          ] )
+          .then( () => done() )
+          .catch( done );
+      } );
+      beforeEach( function ( done ) {
+        return Bigram.parseText( bigramSeed )
+          .then( result => parsedText = result )
+          .then( () => done() )
+          .catch( done );
+      } );
+      it( 'can add a single bigram', function ( done ) {
+        return Bigram.train( [ '<s>', 'sam' ] )
+          .then( bigramPhrase => {
+            console.log( bigramPhrase );
+            bigramPhrase.should.have.property( 'tokenOneId', 1 )
+            bigramPhrase.should.have.property( 'tokenTwoId', 2 )
+          } )
+          .then( () => done() )
+          .catch( done )
+      } );
+    } )
+    describe( 'train an entire text for bigram', function () {
+        it( 'can train on an entire corpus', function ( done ) {
+          Bigram.addAssociations( db );
+          let bigramTrainPromise = Bigram.trainText( greenEggsAndHam );
+          let bigramLookup = Bigram.findAll()
+          return bigramTrainPromise
+            .then( result => bigramLookup )
+            .then( bigram =>
+              bigram[ 0 ].should.eql( {
+                bigram: [ "i", "am" ],
+                frequency: 4
+              } ) )
+            .then( () => done() )
+            .catch( done );
         } )
-        .then( () => done() )
-        .catch( done )
-    } );
-    xit( 'can train on an entire corpus', function( done) {
-      let bigramTrainPromise = Bigram.trainCorpus( bigramSeed );
-      let bigramLookup = Bigram.findAll()
-      return
-        bigramTrainPromise
-          .then( result => bigramLookup )
-          .get(0)
-          .then( bigram => bigram.should.eql( {bigram: ["i", "am"], frequency: 4 } ))
-
-    })
-    // xit( 'takes a new bigram and increments frequency', function ( done ) {
-    //   return Bigram.trainText( ["am", "sam"])
-    //     .then( () => Bigram.findOne( {
-    //       where: {
-    //         bigram: "I"
-    //       }
-    //     } ) )
-    //     .then( bigram => bigram.frequency.should.equal( 1 ) )
-    //     .then( () => done() )
-    //     .catch( done )
-    // } );
+      } )
+      // xit( 'takes a new bigram and increments frequency', function ( done ) {
+      //   return Bigram.trainText( ["am", "sam"])
+      //     .then( () => Bigram.findOne( {
+      //       where: {
+      //         bigram: "I"
+      //       }
+      //     } ) )
+      //     .then( bigram => bigram.frequency.should.equal( 1 ) )
+      //     .then( () => done() )
+      //     .catch( done )
+      // } );
   } );
 
   xdescribe( 'Instance Methods', function () {} );
@@ -243,5 +252,5 @@ const normalization = [
 
 function seedPhrase( phrase ) {
   let parsedPhrase = parsePhrase( phrase )
-  return bluebird.each( parsedPhrase, ( word ) => Word.incrementWord( word ) )
+  return Bluebird.each( parsedPhrase, ( word ) => Word.incrementWord( word ) )
 }
