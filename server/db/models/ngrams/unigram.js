@@ -112,7 +112,7 @@ module.exports = function (db) {
       addPhrase: function(rawText, normalizationRules = defaultRules){
         const Word = db.models['word'];
         let phraseArray = Word.parseText(rawText, normalizationRules);
-        console.log(phraseArray);
+        // console.log(phraseArray);
         return bluebird.mapSeries(phraseArray, (value, index, array) =>{
           return Word.addWordWithFrequency(value)
         } );

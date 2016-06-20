@@ -1,8 +1,8 @@
 'use strict';
-var _ = require('lodash');
-var Sequelize = require('sequelize');
-const Bluebird = require('Bluebird');
-const ngramUtils = require('./utils');
+var _ = require( 'lodash' );
+var Sequelize = require( 'sequelize' );
+const Bluebird = require( 'Bluebird' );
+const ngramUtils = require( './utils' );
 
 /**
  * [defaultRules are the default Normalization Rules used by Word.parseText()]
@@ -10,102 +10,177 @@ const ngramUtils = require('./utils');
  * @see utils
  * @borrows utils
  */
-const {defaultRules, defaultPhraseParser, phraseParser, negArray} = ngramUtils;
+const {
+  defaultRules,
+  defaultPhraseParser,
+  phraseParser,
+  negArray
+} = ngramUtils;
 
 /**
  * Bigram
  * @category model
-*/
-module.exports = function (db) {
-  db.define('bigram', {
-    /** @constructs Bigram */
-    frequency: {
-      type: Sequelize.INTEGER,
-      defaultValue: 1
-    }
-  }, {
-    /** @lends Bigram */
-    classMethods: {
-      addAssociations(database = db){
-        const Bigram = db.model('bigram');
-        const Word = db.model('word');
-        Bigram.belongsTo(Word, {as: 'tokenOne'}),
-        Bigram.belongsTo(Word, {as: 'tokenTwo'})
-        return Bigram;
-      },
-      // /**
-      //  * [incrementWord description]
-      //  * @summary adds or increments a word
-      //  * @param  {String} word [the word to add]
-      //  * @return {Object}      [instance of Word]
-      //  */
-      // incrementWord(word){
-      //   const Word = db.models['word'];
-      //   return Word.findCreateFind({where: {word}})
-      //              .spread( (word, created) => {
-      //                if(!word) throw 'no word'
-      //                return [word, created];
-      //              })
-      //              .spread( (word, created) => {
-      //                if(created) return word;
-      //                return word.increment('frequency')
-      //              })
-      //              .catch(err => err);
-      // },
-      /**
-       * [parseText parses raw text into an array of lowercase bigram tuples]
-       * @example
-       * <caption>
-       * 	`I am Sam Sam I am`
-       * 	becomes
-       * 	[ [ '<s>', 'sam' ],[ 'sam', 'i' ],[ 'i', 'am' ],[ 'am', 'i' ],[ 'i', 'am' ],[ 'am', 'sam' ],[ 'sam', '</s>' ] ]
-       * </caption>
-       * @param  {String} textToParse [a string or String.raw template literal, possibly with multiple lines]
-       * param  {Array.<string>} [textParser = utils.defaultPhraseParser]
-       */
-      parseText(textToParse, textParser = phraseParser() ){
-        let unigramArray = textToParse.toLowerCase().match(textParser);
-        let bigramMap = [[`<s>`, unigramArray[0]]];
-        unigramArray.forEach( (word, i, text) => i === text.length-1 ?
-          bigramMap.push( [word, `</s>`] ) :
-          bigramMap.push( [word, text[i+1]] ) )
-        /** @return {Array.<string>} [raw] */
-        return Bluebird.resolve(bigramMap)
-      },
-      /**
-       * [train description]
-       * @param  {Array.<string>} bigramTuple [description]
-       * @return {Object}             [instance of the bigram]
-       */
-      train( bigramTuple, createFind=true ){
-        // console.log(db);
-        const Word = db.model('word');
-        const Bigram = db.model('bigram');
-        if( !bigramTuple ) throw 'Bigram.train must be called with a Bigram Tuple'
-        if(!Array.isArray(bigramTuple)) throw 'must pass bigram tuple into train. use trainText or trainCorpusText for parsing';
-        let [tokenOne, tokenTwo] = bigramTuple;
-        let tokenOneObj = {word: tokenOne};
-        let tokenTwoObj = {word: tokenTwo};
-        let createTokens = Word.bulkCreate([tokenOneObj, tokenTwoObj],
-          {
+ */
+module.exports = function ( db ) {
+    db.define( 'bigram', {
+      /** @constructs Bigram */
+      frequency: {
+        type: Sequelize.INTEGER,
+        defaultValue: 1
+      }
+    }, {
+      /** @lends Bigram */
+      classMethods: {
+        addAssociations( database = db ) {
+          const Bigram = db.model( 'bigram' );
+          const Word = db.model( 'word' );
+          Bigram.belongsTo( Word, {
+              as: 'tokenOne'
+            } ),
+            Bigram.belongsTo( Word, {
+              as: 'tokenTwo'
+            } )
+          return Bigram;
+        },
+        // /**
+        //  * [incrementWord description]
+        //  * @summary adds or increments a word
+        //  * @param  {String} word [the word to add]
+        //  * @return {Object}      [instance of Word]
+        //  */
+        // incrementWord(word){
+        //   const Word = db.models['word'];
+        //   return Word.findCreateFind({where: {word}})
+        //              .spread( (word, created) => {
+        //                if(!word) throw 'no word'
+        //                return [word, created];
+        //              })
+        //              .spread( (word, created) => {
+        //                if(created) return word;
+        //                return word.increment('frequency')
+        //              })
+        //              .catch(err => err);
+        // },
+        /**
+         * [parseText parses raw text into an array of lowercase bigram tuples]
+         * @example
+         * <caption>
+         * 	`I am Sam Sam I am`
+         * 	becomes
+         * 	[ [ '<s>', 'sam' ],[ 'sam', 'i' ],[ 'i', 'am' ],[ 'am', 'i' ],[ 'i', 'am' ],[ 'am', 'sam' ],[ 'sam', '</s>' ] ]
+         * </caption>
+         * @param  {String} textToParse [a string or String.raw template literal, possibly with multiple lines]
+         * param  {Array.<string>} [textParser = utils.defaultPhraseParser]
+         */
+        parseText( textToParse, textParser = phraseParser() ) {
+          let unigramArray = textToParse.toLowerCase()
+            .match( textParser );
+          let bigramMap = [
+            [ `<s>`, unigramArray[ 0 ] ]
+          ];
+          unigramArray.forEach( ( word, i, text ) => i === text.length - 1 ?
+              bigramMap.push( [ word, `</s>` ] ) :
+              bigramMap.push( [ word, text[ i + 1 ] ] ) )
+            /** @return {Promise.<Array.<string>>} [raw] */
+          return Bluebird.resolve( bigramMap )
+        },
+        addPhrase( storyObject ) {
+          const Word = db.models[ 'word' ];
+          const Bigram = db.models[ 'bigram' ];
+          console.log( '...parsing Story' )
+          return Bigram
+            .parseText( storyObject )
+            .map( bigramTuple => {
+                let wordTokenOne = Word.findOne( {
+                  where: {
+                    word: bigramTuple[ 0 ]
+                  }
+                } )
+                let wordTokenTwo = Word.findOne( {
+                  where: {
+                    word: bigramTuple[ 1 ]
+                  }
+                } )
+                return Bluebird.all( [ wordTokenOne, wordTokenTwo ] )
+                  .spread( ( foundWordOne, foundWordTwo ) => {
+                    let instance = Bigram.build();
+                    instance.setTokenOne( foundWordOne, {
+                      save: false
+                    } );
+                    instance.setTokenTwo( foundWordTwo, {
+                      save: false
+                    } );
+                    return Bigram.findOne( {
+                        where: {
+                          tokenOneId: instance.tokenOneId,
+                          tokenTwoId: instance.tokenTwoId
+                        }
+                      } )
+                      .then( foundBigram => {
+                        if ( !foundBigram ) {
+                          return instance.save()
+                        } else {
+                          console.log('incrementing', foundBigram.get({plain:true}))
+                          foundBigram.increment('frequency');
+                        }
+                      } )
+                  } )
+              } )
+            .then( result => {
+              console.log( 'done' );
+              return result;
+            } )
+        },
+        // .map( bigramInstance => {
+        //   return Bigram.findOne({where: bigramInstance}).then(
+        //     bigramResult => {
+        //       if(bigramResult){ bigramResult.frequency += 1; bigramResult.save()}
+        //       else { bigramInstance.save() }
+        //     }
+        //   )
+        // })
+        // .map( bigramObject => {
+        //   let {instance, tuple: [wordTokenOne, wordTokenTwo] } = bigramObject;
+        //   instance.setTokenOne(wordTokenOne);
+        //   instance.setTokenTwo(wordTokenTwo);
+        //   return Bigram.upsert(bigramObject);
+        // })
+        /**
+         * [train description]
+         * @param  {Array.<string>} bigramTuple [description]
+         * @return {Object}             [instance of the bigram]
+         */
+        train( bigramTuple, createFind = true ) {
+          // console.log(db);
+          const Word = db.model( 'word' );
+          const Bigram = db.model( 'bigram' );
+          if ( !bigramTuple ) throw 'Bigram.train must be called with a Bigram Tuple'
+          if ( !Array.isArray( bigramTuple ) ) throw 'must pass bigram tuple into train. use trainText or trainCorpusText for parsing';
+          let [ tokenOne, tokenTwo ] = bigramTuple;
+          let tokenOneObj = {
+            word: tokenOne
+          };
+          let tokenTwoObj = {
+            word: tokenTwo
+          };
+          let createTokens = Word.bulkCreate( [ tokenOneObj, tokenTwoObj ], {
             logging: true,
             returning: true
-          }
-        )
-        return createTokens
-                       .spread( (tokenOneResult, tokenTwoResult) => {
-                       let newBigram = Bigram.build();
-                       newBigram.set('tokenOneId', tokenOneResult.id);
-                       newBigram.set('tokenTwoId', tokenTwoResult.id);
-                       return newBigram.save();}
-                     )
+          } )
+          return createTokens
+            .spread( ( tokenOneResult, tokenTwoResult ) => {
+              let newBigram = Bigram.build();
+              newBigram.set( 'tokenOneId', tokenOneResult.id );
+              newBigram.set( 'tokenTwoId', tokenTwoResult.id );
+              return newBigram.save();
+            } )
+        }
       }
-    }
-        // return Word.phraseParser(...arguments).then( wordArray =>
-        //   wordArray.map( function(value, index, array) {
-        //     if(!array[index+1]) bigramArray.push( [value, `</s>`])
-        //     else bigramArray.push( [value, array[index+1]] )
-        //   }));
+      // return Word.phraseParser(...arguments).then( wordArray =>
+      //   wordArray.map( function(value, index, array) {
+      //     if(!array[index+1]) bigramArray.push( [value, `</s>`])
+      //     else bigramArray.push( [value, array[index+1]] )
+      //   }));
       // },
       // /**
       //  * [addPhrase]
@@ -150,25 +225,25 @@ module.exports = function (db) {
       //     limit: limit
       //   })
       // }
-    })
+    } )
   }
-    // /** @lends Word.prototype */
-    // instanceMethods: {
-    //   /**
-    //    * [calculates the unigram probability across the entire table]
-    //    * @this {Object} [the word instance]
-    //    * @return {Number} [the probability]
-    //    */
-    //   unigramProbability(){
-    //     let word = this;
-    //     const Word = db.models['word'];
-    //     return Word.sum('frequency')
-    //                .then( result => Math.floor(word.frequency / result * 10000) )
-    //     }
-    //   }
+  // /** @lends Word.prototype */
+  // instanceMethods: {
+  //   /**
+  //    * [calculates the unigram probability across the entire table]
+  //    * @this {Object} [the word instance]
+  //    * @return {Number} [the probability]
+  //    */
+  //   unigramProbability(){
+  //     let word = this;
+  //     const Word = db.models['word'];
+  //     return Word.sum('frequency')
+  //                .then( result => Math.floor(word.frequency / result * 10000) )
+  //     }
+  //   }
 
 // example of how to construct the bigram model
-function BigramConstructor (db) {
+function BigramConstructor( db ) {
   /** @constructs Bigram */
-  db.model('bigram')
+  db.model( 'bigram' )
 }

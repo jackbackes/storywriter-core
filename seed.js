@@ -72,28 +72,37 @@ function story(title, storyPath, categories){
 
 let storySeeds = new Map()
   .set('Green_Eggs_And_Ham', story('Green Eggs And Ham', 'greeneggsandham.txt', ['Dr. Seuss', 'poem'] ))
-  .set('Fairy_Tales_Every_Child_Should_Know', story('Fairy Tales Every Child Should Know', 'fairyTales/__pg14916.txt', ['Fairy Tale', 'Anthology']))
-  .set('Folk_Tales_Every_Child_Should_Know', story('Folk Tales Every Child Should Know', 'folkTales/pg15164.txt', ['Folk Tale', 'Anthology']))
-  .set('Good_Cheer_Stories_Every_Child_Should_Know', story('Good Cheer Stories Every Child Should Know', 'goodCheer/pg19909.txt', ['Good Cheer', 'Anthology']))
-  .set('Hero_Stories_Every_Child_Should_Know', story('Hero Stories Every Child Should Know', 'hero/pg4265.txt', ['Hero Story', 'Anthology']))
-  .set('Legends_Every_Child_Should_Know', story('Legends Every Child Should Know', 'legend/pg6622.txt', ['Legend', 'Anthology']))
-  .set('Myths_Every_Child_Should_Know', story('Myths Every Child Should Know', 'myth/pg16537.txt', ['Myth', 'Anthology']))
-  .set('Poems_Every_Child_Should_Know', story('Poems Every Child Should Know', 'poem/pg16436.txt', ['Poem', 'Anthology']))
-  .set('Wonder_Stories_Every_Child_Should_Know', story('Wonder Stories Every Child Should Know', 'wonder/pg19461.txt', ['Wonder Story', 'Anthology']))
-  .set('Famous_Stories_Every_Child_Should_Know', story('Famous Stories Every Child Should Know', 'famousStories/pg16247.txt', ['Famous Story', 'Anthology']))
+  .set('Fairy_Tales_Every_Child_Should_Know', story('Fairy Tales Every Child Should Know', 'fairyTales/pg14916.txt', ['Fairy Tale', 'Anthology']))
+  // .set('Folk_Tales_Every_Child_Should_Know', story('Folk Tales Every Child Should Know', 'folkTales/pg15164.txt', ['Folk Tale', 'Anthology']))
+  // .set('Good_Cheer_Stories_Every_Child_Should_Know', story('Good Cheer Stories Every Child Should Know', 'goodCheer/pg19909.txt', ['Good Cheer', 'Anthology']))
+  // .set('Hero_Stories_Every_Child_Should_Know', story('Hero Stories Every Child Should Know', 'hero/pg4265.txt', ['Hero Story', 'Anthology']))
+  // .set('Legends_Every_Child_Should_Know', story('Legends Every Child Should Know', 'legend/pg6622.txt', ['Legend', 'Anthology']))
+  // .set('Myths_Every_Child_Should_Know', story('Myths Every Child Should Know', 'myth/pg16537.txt', ['Myth', 'Anthology']))
+  // .set('Poems_Every_Child_Should_Know', story('Poems Every Child Should Know', 'poem/pg16436.txt', ['Poem', 'Anthology']))
+  // .set('Wonder_Stories_Every_Child_Should_Know', story('Wonder Stories Every Child Should Know', 'wonder/pg19461.txt', ['Wonder Story', 'Anthology']))
+  // .set('Famous_Stories_Every_Child_Should_Know', story('Famous Stories Every Child Should Know', 'famousStories/pg16247.txt', ['Famous Story', 'Anthology']))
 
   function getTextSync(story) {
     return fs.readFileSync(story.path, 'utf8')
   }
 
+function seedBigrams(storyObject){
+  return Bigram.addPhrase(storyObject);
+}
 
-
-db.sync({ force: true })
+db.sync({force: true})
     .then( () => Promise.each(storySeeds, story => {
             let [id, storyObject] = story;
+            console.log('seeding story unigrams', id)
             return seedPhrase(getTextSync(storyObject));
       }))
+    .then( () => Promise.each(storySeeds, story => {
+            let [id, storyObject] = story;
+            console.log('seeding story bigrams', id)
+            return seedBigrams(getTextSync(storyObject));
+    }))
     .then(function () {
+        console.log('finished seeding bigrams');
         return seedUsers();
     })
     .then(function () {
