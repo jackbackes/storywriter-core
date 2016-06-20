@@ -31,12 +31,17 @@ module.exports = function (db) {
       type: Sequelize.INTEGER,
       defaultValue: 1
     },
-    unigramP: {
-      type: Sequelize.VIRTUAL,
-      get: function() {
-        return this.unigramProbability();
-      }
-    }
+    // Probability: {
+    //   type: new Sequelize.FLOAT,
+    //   get: function() {
+    //     const Word = db.models['word']
+    //     return Word.count()
+    //                .then( rowCount =>{
+    //                  console.log( rowCount );
+    //                  return Math.log2(this.frequency) - Math.log2( rowCount )
+    //                })
+    //   }
+    // }
   }, {
     /** @lends Word */
     classMethods: {
@@ -72,7 +77,9 @@ module.exports = function (db) {
         let matchedPhraseArray = phraseToMatch.match(parseMatcher);
         let sorted = new Map();
         matchedPhraseArray.forEach( (word, index) => {
-          if( typeof word !== 'string' ) {return;}
+          if( typeof word !== 'string' ) {
+            return;
+          }
           else {
               let frequency = sorted.get(word) || 1;
               let newFrequency = frequency + 1;

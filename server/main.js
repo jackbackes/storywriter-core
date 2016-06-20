@@ -3,6 +3,7 @@ var chalk = require('chalk');
 var db = require('./db');
 const path = require('path');
 var env = require(path.join(__dirname, './env'));
+global.__base = __dirname + '/';
 
 // Create a node server instance! cOoL!
 var server = require('http').createServer();
