@@ -17,8 +17,8 @@ router.get('/', (req, res, next) => {
 })
 
 router.get('/:tokenOne', (req, res, next) => {
-
     let tokenOne = req.params.tokenOne;
+    console.log(tokenOne);
     Bigram.mostLikely(tokenOne)
       .then( wordArray => res.status(200).send(wordArray) )
       .catch(next);

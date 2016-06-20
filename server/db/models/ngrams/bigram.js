@@ -144,7 +144,7 @@ module.exports = function ( db ) {
             return newBigram.save();
           } )
       },
-      mostLikely( tokenOne, limit = 20 ) {
+      mostLikely( tokenOne, limit = 6 ) {
         const Word = db.models[ 'word' ];
         const Bigram = db.models[ 'bigram' ];
         if ( !tokenOne ) {
@@ -171,7 +171,12 @@ module.exports = function ( db ) {
               }
             } )
             .then( word => {
-              let wordId = word.id;
+              if(!word) {
+                var wordId = Math.floor(Math.random()*10000);
+              }
+              else {
+                var wordId = word.id;
+              }
               let bigrams = Bigram.findAll( {
                 where: { tokenOneId: wordId },
                 order: [
