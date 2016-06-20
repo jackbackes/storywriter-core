@@ -39,6 +39,7 @@ module.exports = function (app, db) {
                 var error = new Error('Invalid login credentials.');
                 error.status = 401;
                 return next(error);
+
             }
 
             // req.logIn will establish our session.

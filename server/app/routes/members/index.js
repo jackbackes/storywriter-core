@@ -2,14 +2,34 @@
 var router = require('express').Router();
 module.exports = router;
 var _ = require('lodash');
+const Bluebird = require('bluebird');
+const path = require('path');
 
 var ensureAuthenticated = function (req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
         res.status(401).end();
+        // next();
     }
 };
+
+router.get('/stories', ensureAuthenticated, function(req, res, next){
+  const db = require(path.join(__base, 'db'));
+  const User = db.models['user'];
+  User.findById(req.user.id)
+      .then( user => user.get('stories'))
+      .then( result => res.status(200).send(result))
+      .catch(next);
+})
+
+router.post('/story', ensureAuthenticated, function(req, res, next){
+  // req.user.addStory(req.body)
+  //    .then( result => res.status(201).send(result) )
+  //    .catch(next)
+  let result = req.user.addStory(req.body)
+  res.status(201).send(result)
+})
 
 router.get('/secret-stash', ensureAuthenticated, function (req, res) {
 

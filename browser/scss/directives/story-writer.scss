@@ -1,2 +1,31 @@
 
 :focus {outline:none;}
+
+$writer-font-stack:    Helvetica, sans-serif;
+$font-color: #333;
+$typeahead-font-color: lighten($font-color, 50%);
+
+.write-block-container {
+  width: 100%;
+  height: 100%;
+}
+
+p, input {
+  font-family: 'Taviraj', serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Cinzel', serif;
+}
+
+.write-block {
+  width: 100%;
+  height: 100%;
+  // font: 100%, $writer-font-stack;
+  color: $font-color;
+}
+
+.typeahead {
+  font: 100%, $writer-font-stack;
+  color: $typeahead-font-color;
+}

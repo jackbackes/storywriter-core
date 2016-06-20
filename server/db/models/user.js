@@ -23,6 +23,9 @@ module.exports = function (db) {
         },
         google_id: {
             type: Sequelize.STRING
+        },
+        stories: {
+            type: Sequelize.ARRAY(Sequelize.TEXT)
         }
     }, {
         instanceMethods: {
@@ -31,6 +34,15 @@ module.exports = function (db) {
             },
             correctPassword: function (candidatePassword) {
                 return this.Model.encryptPassword(candidatePassword, this.salt) === this.password;
+            },
+            addStory: function( story ) {
+                const User = db.models['user'];
+                let user = this;
+                let stories = this.stories;
+                if( !stories ) stories = [];
+                stories.push(story);
+                user.setDataValue('stories', stories);
+                return user;
             }
         },
         classMethods: {
@@ -57,4 +69,3 @@ module.exports = function (db) {
 
 
 };
-

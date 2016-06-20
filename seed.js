@@ -90,17 +90,19 @@ function seedBigrams(storyObject){
   return Bigram.addPhrase(storyObject);
 }
 
-db.sync({force: true})
-    .then( () => Promise.each(storySeeds, story => {
-            let [id, storyObject] = story;
-            console.log('seeding story unigrams', id)
-            return seedPhrase(getTextSync(storyObject));
-      }))
-    .then( () => Promise.each(storySeeds, story => {
-            let [id, storyObject] = story;
-            console.log('seeding story bigrams', id)
-            return seedBigrams(getTextSync(storyObject));
-    }))
+// db.sync({force: true})
+db.sync()
+    .then( () => seedUsers() )
+    // .then( () => Promise.each(storySeeds, story => {
+    //         let [id, storyObject] = story;
+    //         console.log('seeding story unigrams', id)
+    //         return seedPhrase(getTextSync(storyObject));
+    //   }))
+    // .then( () => Promise.each(storySeeds, story => {
+    //         let [id, storyObject] = story;
+    //         console.log('seeding story bigrams', id)
+    //         return seedBigrams(getTextSync(storyObject));
+    // }))
     .then(function () {
         console.log('finished seeding bigrams');
         return seedUsers();

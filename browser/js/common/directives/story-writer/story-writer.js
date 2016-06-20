@@ -7,7 +7,7 @@ function getStoryText(element){
   return element.text()
 }
 
-app.directive('storyWriter', function($http){
+app.directive('storyWriter', function($http, $state, $rootScope, $httpParamSerializerJQLike){
   return {
     link: function(scope, element, attrs){
       scope.suggestions = `{stuff: 'goes here'}`
@@ -22,6 +22,17 @@ app.directive('storyWriter', function($http){
           return wordTree(depth-1, suggestion, which);
         })
       };
+      scope.saveStory = function(){
+        console.log('saving story');
+        var data = {
+                story: scope.storyText
+            };
+        return $http.post('/api/members/story', data)
+                    .then( result => {
+                      console.log('saved story')
+                      return $state.go('stories')
+                    })
+      }
       scope.lookupSuggestions = function(e){
         // console.debug(scope);
         scope.storyArray = JSON.stringify(getStoryArray(scope.storyText));
@@ -49,11 +60,11 @@ app.directive('storyWriter', function($http){
     <div class="container">
       <div class="row">
         <div class="col-md-12" class="write-block-container">
-          <h1>Title: <span contenteditable>Once upon a time...</span></h1>
-          <h2>Author: <span contenteditable>Author McAuthorson</span></h2>
-          <h4>Once upon a time...</h4>
+          <h1>Title: <span contenteditable>Green Eggs and Ham</span></h1>
+          <h2>Author: <span contenteditable>Dr. Seuss</span></h2>
+
           <blockquote class="blockquote-reverse">
-            <input ng-keypress="lookupSuggestions($event)"  class="form-control write-block" ng-model="storyText" >
+            <input ng-keypress="lookupSuggestions($event)"  class="form-control write-block" ng-model="storyText" placeholder="once upon a time..." >
             </input>
             <footer class="typeahead" ng-hide="showWordTree == true">
               <cite title="Suggestions:">Suggestions:</cite><br> <span ng-bind="wordTreeSuggestionsOne">time, dream, midnight</span>
@@ -68,37 +79,16 @@ app.directive('storyWriter', function($http){
         </div>
       </div>
       <div style="position:fixed; bottom:0px;">
-      <label>
-        Hide suggestions?
-        <input type="checkbox" class="checkbox.inline" ng-model="showWordTree"/>
-      </label>
-      <label>
-        Hint: Don't like what you see? Press backspace then space.
-      </label>
+        <label>
+          Hide suggestions?
+          <input type="checkbox" class="checkbox.inline" ng-model="showWordTree"/>
+        </label>
+        <label>
+          Hint: Don't like what you see? Press backspace then space.
+        </label>
+        <login></login>
       </div>
     </div>
     `
   }
 })
-
-
-
-
-
-let storyWriterTemplate = `
-<div class="container">
-  <div class="row">
-    <div class="col-md-12" class="write-block-container">
-      <pre>{scope: scope goes here}</pre>
-      <blockquote class="blockquote-reverse">
-        <div contentiseditable="true" class="write-block">
-          Text goes here...
-        </div>
-        <footer class="typeahead">
-          <cite title="Suggestions:">Suggestions</cite> go here.
-        </footer>
-      </blockquote>
-    </div>
-  </div>
-</div>
-`
