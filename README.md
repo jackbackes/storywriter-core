@@ -1,7 +1,7 @@
 # Story Writer
 ## Story writer helps you write stories for kids.
-### Based on a corpus of (9) anthologies of children's literature, plus
-Green Eggs and Ham.
+> Based on a corpus of (9) anthologies of children's literature, plus
+> Green Eggs and Ham.
 
 
 
